@@ -33,3 +33,11 @@ function inheritPrototype(subtype, supertype) {
     prototype.constructor = subtype;
     subtype.prototype = prototype;
 }
+
+function cancelEvent(e) {
+    if (e) {
+        e.stopPropagation();
+    } else {
+        window.event.cancelBubble = true;
+    }
+}
