@@ -34,10 +34,59 @@ function inheritPrototype(subtype, supertype) {
     subtype.prototype = prototype;
 }
 
+//阻止冒泡事件
 function cancelEvent(e) {
     if (e) {
         e.stopPropagation();
     } else {
         window.event.cancelBubble = true;
     }
+}
+
+
+/**
+ * 检查字符串是否以xx开头
+ * 
+ * @param {String} origin 被检验的字符串
+ * @param {String} text  待检验的字符串
+ * @returns 
+ */
+function isStartWith(origin, text) {
+    if (origin.startsWith) {
+        return origin.startsWith(text);
+    } else {
+        var count = text.length;
+        var length = origin.length;
+        if (length < count) {
+            return;
+        }
+        if (count) {
+            for (var i = 0; i < count; i++) {
+                if (origin[i] != text[i]) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return true;
+        }
+    }
+}
+
+/**
+ * 扩展对象
+ * 
+ * @param {any} origin 待扩展对象
+ * @param {any} dest 被扩展对象
+ * @returns 
+ */
+function extend(origin, dest) {
+    for (var key in origin) {
+        if (origin.hasOwnProperty(key)) {
+            if (origin[key]) {
+                dest[key] = origin[key];
+            }
+        }
+    }
+    return dest;
 }
