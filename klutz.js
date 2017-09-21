@@ -1,8 +1,6 @@
 ! function(window) {
-    function $$() {};
-    $$.prototype = {
-
-
+    function klutz() {};
+    klutz.prototype = {
         extendMany: function() {
             var k, i = 0,
                 len = arguments.length,
@@ -33,15 +31,26 @@
         }
     }
 
-    $$ = new $$();
+    klutz = new klutz();
 
     /*Basic*/
-    $$.extend($$, {
-
+    klutz.extend(klutz, {
+        performance: function(func, funcName) {
+            var t;
+            func.before(
+                function() {
+                    t = klutz.stamp();
+                }
+            ).after(
+                function() {
+                    console.log('Function "' + funcName + '" takes ' + (klutz.stamp() - t) / 1000 + 's');
+                }
+            )();
+        }
     })
 
     /*Ajax*/
-    $$.extend($$, {
+    klutz.extend(klutz, {
         ajax: function(para) {
             if (!para.url) { //没有url
                 throw new Error('there is no url available')
@@ -144,7 +153,7 @@
             window[funcName] = function(resp) {
                 callback(resp);
                 document.body.removeChild(script);
-                window[funcName] = null;
+                window[funcName] = undefined;
             }
             script.setAttribute('src', url + query);
             document.body.appendChild(script);
@@ -152,72 +161,92 @@
     });
 
     /*DOM*/
-    $$.extend($$, {
-        id: function(id) {
-            if ($$.isString(id)) {
-                return document.getElementById(id);
+    klutz.extend(klutz, {});
+
+    /*Event*/
+    klutz.extend(klutz, {
+        event: function(e) {
+            return e ? e : window.event;
+        },
+        target: function(e) {
+            e = klutz.event(e);
+            return e.target || e.srcElement;
+        },
+        preventDefault: function(e) {
+            e = klutz.event(e);
+            if (e.preventDefault) {
+                e.preventDefault();
+            } else {
+                e.returnValue = false;
             }
         },
-        tag: function(tag) {
-            if ($$.isString(tah)) {
-                return document.getElementsByTagName(tag);
+        stopPropagation: function(e) {
+            e = klutz.event(e);
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            } else {
+                e.cancelBubble = true;
             }
         },
-        class: function(className) {
-            if ($$.isString(className)) {
-                if (document.getElementsByClassName) {
-                    return document.getElementsByClassName(className);
-                } else {
-                    throw new Error('Your Browser do not support this method');
+        delegate: function(parent, event, selector, fn) {
+            var dom = klutz.isString(parent) ? document.getElementById(parent) : parent;
+            dom[event] = function(e) {
+                var target = klutz.target(e);
+                if (target.nodeName.toLowerCase() === selector || target.id == selector || target.className.indexOf(selector) != -1) {
+                    fn.call(target);
                 }
             }
         }
     });
 
-    /*Event*/
-    $$.extend($$, {
-        on: function(id, type, fn) {
-            var dom = $$.isString(id) ? document.getElementById(id) : id;
-            if (dom.addEventListener) {
-                dom.addEventListener(type, fn);
-            } else if (dom.attachEvent) {
-                dom.attachEvent('on' + type, fn);
-            }
+    /*CSS*/
+    klutz.extend(klutz, {
+        height: function(dom) {
+            return dom.clientHeight;
         },
-        un: function(id, type, fn) {
-            var dom = $$.isString(id) ? document.getElementById(id) : id;
-            if (dom.removeEventListener) {
-                dom.removeEventListener(type, fn);
-            } else if (dom.detachEvent) {
-                dom.detachEvent(type, fn);
-            }
+        width: function(dom) {
+            return dom.clientWidth;
         },
-        click: function(id, fn) {
-            $$.on(id, 'click', fn);
+        scrollHeight: function(dom) {
+            return dom.scrollHeight;
         },
-        mouseover: function(id, fn) {
-            $$.on(id, 'mouseover', fn);
+        scrollWidth: function(dom) {
+            return dom.scrollWidth;
         },
-        mouseout: function(id, fn) {
-            $$.on(id, 'mouseout', fn);
+        scrollTop: function(dom) {
+            return dom.scrollTop;
         },
-        hover: function(id, fnOver, fnOut) {
-            if (fnOver && typeof fnOver === 'function') {
-                $$.on(id, 'mouseover', fnOver);
-            }
-            if (fnOut && typeof fnOut === 'function') {
-                $$.on(id, 'mouseout', fnOut);
-            }
+        scrollLeft: function(dom) {
+            return dom.scrollLeft;
+        },
+        innerHeight: function() {
+            return document.documentElement.clientHeight;
+        },
+        innerWidth: function() {
+            return document.documentElement.clientWidth;
+        },
+        innerScrollHeight: function() {
+            return document.body.scrollHeight;
+        },
+        innerScrollWidth: function() {
+            return document.body.scrollWidth;
+        },
+        screenHeight: function() {
+            return window.screen.height;
+        },
+        screenWidth: function() {
+            return window.screen.width;
+        },
+        hide: function(context) {
+            klutz.css(context, 'display', 'hide');
+        },
+        show: function(context) {
+            klutz.css(context, 'display', 'block')
         }
     });
 
-    /*CSS*/
-    $$.extend($$, {
-
-    });
-
     /*Type of*/
-    $$.extend($$, {
+    klutz.extend(klutz, {
         isNumber: function(num) {
             return typeof num == 'number' && isFinite(num);
         },
@@ -239,7 +268,7 @@
     });
 
     /*String*/
-    $$.extend($$, {
+    klutz.extend(klutz, {
         filePath: function() {
             var url = '';
             if (document.currentScript) {
@@ -247,13 +276,11 @@
             } else {
                 var scripts = document.getElementsByTagName('script');
                 var script = scripts[scripts.length - 1];
-
                 if (script.getAttribute.length !== undefined) {
                     url = script.src;
                 } else {
                     url = script.getAttribute('src', '-1');
                 }
-
             }
             return url.split('/').pop();
         },
@@ -281,20 +308,20 @@
     });
 
     /*Number*/
-    $$.extend($$, {
+    klutz.extend(klutz, {
         random: function(start, end) {
             return Math.floor(Math.random() * (end - begin)) + begin
         }
     });
 
     /*Timer*/
-    $$.extend($$, {
+    klutz.extend(klutz, {
         stamp: function() {
             return (new Date()).getTime();
         },
         //fmt: 'yyyy-MM-dd HH:mm:ss' '-,:' can be different
         formatter: function(time, fmt) {
-            if ($$.isString(fmt)) {
+            if (klutz.isString(fmt)) {
                 var date = new Date(time);
                 var arr = fmt.split(' ');
                 var dateStr = '';
@@ -441,5 +468,39 @@
     });
 
 
-    window.$$ = $$;
+    window.klutz = klutz;
 }(window)
+
+
+/* Array+Extension */
+Array.prototype.pushArray = function(arr) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+        this.push(arr[i]);
+    }
+}
+
+/* String + Extension */
+
+/* function + Extension */
+Function.prototype.before = function(func) {
+    var _self = this;
+    return function() {
+        func.apply(this, arguments);
+        // if(func.apply(this, arguments)===false){
+        //     return false;
+        // }
+        return _self.apply(this, arguments);
+    }
+}
+
+Function.prototype.after = function(func) {
+    var _self = this;
+    return function() {
+        var ret = _self.apply(this, arguments);
+        // if(ret === false){
+        //     return false;
+        // }
+        func.apply(this, arguments);
+        return ret;
+    }
+}
